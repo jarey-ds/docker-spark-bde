@@ -2,7 +2,7 @@
 
 set -e
 
-TAG=3.3.0-hadoop3.3
+TAG=3.3.1-hadoop3
 
 build() {
     NAME=$1
@@ -15,15 +15,23 @@ build() {
 
 if [ $# -eq 0 ]
   then
+    echo "----------------->Build base:"
     build base
+    echo "----------------->Build master:"
     build master
+    echo "----------------->Build worker:"
     build worker
+    echo "----------------->Build history server:"
     build history-server
+    echo "----------------->Build history submit:"
     build submit
+    echo "----------------->Build maven-template:"
     build maven-template template/maven
+    echo "----------------->Build sbt-template:"
     build sbt-template template/sbt
+    echo "----------------->Build python-template:"
     build python-template template/python
-    
+    echo "----------------->Build examples/python:"
     build python-example examples/python
   else
     build $1 $2
