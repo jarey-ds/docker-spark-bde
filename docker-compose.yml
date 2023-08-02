@@ -7,9 +7,12 @@ services:
     ports:
       - "8080:8080"
       - "7077:7077"
+      - "4040:4040"
     environment:
       - INIT_DAEMON_STEP=setup_spark
       - "SPARK_LOCAL_HOSTNAME:master"
+    volumes:
+      - ./master/conf/:/spark/conf
     extra_hosts:
       - "worker-1:0.0.0.0"
 
@@ -19,11 +22,13 @@ services:
     depends_on:
       - spark-master
     hostname: worker-1
-    #ports:
-    #  - "8081:8081"
+    ports:
+      - "8081:8081"
     environment:
       - "SPARK_MASTER=spark://spark-master:7077"
       - "SPARK_LOCAL_HOSTNAME:worker-1"
+    volumes:
+      - ./worker/conf/:/spark/conf
     #network_mode: "host"
 
     extra_hosts:

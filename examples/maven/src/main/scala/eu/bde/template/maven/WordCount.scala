@@ -12,28 +12,21 @@ import org.apache.spark.sql.{DataFrame, Row}
 
 object WordCount {
 
-    println("Index dataset extension job here.")
-    val spark = SparkSession
-      .builder
-      .appName("IndexExtensionJob")
-      .getOrCreate()
-
-    import spark.implicits._
-
-
   /** Usage: WordCount [file] */
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
       System.err.println("Usage: dataset <file>")
       System.exit(1)
     }
-    /*println("Index dataset extension job here.")
+    println("Index dataset extension job here.")
+
     val spark = SparkSession
       .builder
       .appName("IndexExtensionJob")
+      .config("spark.executor.memory", "4g")
       .getOrCreate()
 
-    import spark.implicits._*/
+    import spark.implicits._
 
     /*
     val file = spark.read.parquet(args(0))
@@ -44,7 +37,7 @@ object WordCount {
     val file = spark.read.parquet(args(0))
     println("addColumnIndex here")
     // Add index now...
-    val df1WithIndex = addColumnIndex(file).withColumn("monotonically_increasing_id", monotonically_increasing_id)
+    val df1WithIndex = addColumnIndex(file, spark).withColumn("monotonically_increasing_id", monotonically_increasing_id)
     //df1WithIndex.show(false)
     df1WithIndex.write.parquet("/flights-indexed.parquet")
     println("Index job succesfully finished.")
@@ -54,7 +47,7 @@ object WordCount {
   /**
     * Add Column Index to dataframe to each row
     */
-  def addColumnIndex(df: DataFrame) = {
+  def addColumnIndex(df: DataFrame, spark : SparkSession) = {
     spark.sqlContext.createDataFrame(
       df.rdd.zipWithIndex.map {
         case (row, index) => Row.fromSeq(row.toSeq :+ index)
