@@ -13,6 +13,7 @@ ENV HADOOP_VERSION=3
 COPY wait-for-step.sh /
 COPY execute-step.sh /
 COPY finish-step.sh /
+COPY merged-flight-status.parquet /
 
 #COPY bde-spark.css /css/org/apache/spark/ui/static/timeline-view.css
 

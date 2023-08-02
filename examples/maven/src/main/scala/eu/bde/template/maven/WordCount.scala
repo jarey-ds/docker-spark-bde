@@ -1,32 +1,65 @@
 package eu.bde.template.maven
 
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.expressions.Window
+import org.apache.spark.internal.Logging
+import org.apache.spark.sql.SparkSession._
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{LongType, StructField, StructType}
+import org.apache.spark.sql.{DataFrame, Row}
+
 
 object WordCount {
+
+    println("Index dataset extension job here.")
+    val spark = SparkSession
+      .builder
+      .appName("IndexExtensionJob")
+      .getOrCreate()
+
+    import spark.implicits._
+
 
   /** Usage: WordCount [file] */
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
-      System.err.println("Usage: WordCount <file>")
+      System.err.println("Usage: dataset <file>")
       System.exit(1)
     }
-    println("WordCount Example Here")
+    /*println("Index dataset extension job here.")
     val spark = SparkSession
       .builder
-      .appName("WordCount")
+      .appName("IndexExtensionJob")
       .getOrCreate()
 
-    val file = spark.read.textFile(args(0)).rdd
+    import spark.implicits._*/
 
-    val counts = file.flatMap(line => line.split(" "))
-      .map(word => (word, 1))
-      .reduceByKey(_ + _)
-    
-    val output = counts.collect()
+    /*
+    val file = spark.read.parquet(args(0))
+    val result = file.withColumn("index",monotonicallyIncreasingId())
+    result.write.parquet("/flights-indexed.parquet")
+    */
 
-    output.foreach { case (word, count) =>
-      println(s"$word: $count")
-    }
+    val file = spark.read.parquet(args(0))
+    println("addColumnIndex here")
+    // Add index now...
+    val df1WithIndex = addColumnIndex(file).withColumn("monotonically_increasing_id", monotonically_increasing_id)
+    //df1WithIndex.show(false)
+    df1WithIndex.write.parquet("/flights-indexed.parquet")
+    println("Index job succesfully finished.")
     spark.stop()
+  }
+
+  /**
+    * Add Column Index to dataframe to each row
+    */
+  def addColumnIndex(df: DataFrame) = {
+    spark.sqlContext.createDataFrame(
+      df.rdd.zipWithIndex.map {
+        case (row, index) => Row.fromSeq(row.toSeq :+ index)
+      },
+      // Create schema for index column
+      StructType(df.schema.fields :+ StructField("index", LongType, false)))
   }
 }
